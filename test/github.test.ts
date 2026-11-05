@@ -56,6 +56,32 @@ describe("github adapter", () => {
     expect(gateFromConclusion("failure")).toBe("red");
   });
 
+  it("never emits a pull that is both draft and merged", () => {
+    const events = eventsFromGithub(
+      {
+        branches: [{ name: "arena/comet-lab/model-first", commit: { sha: "abc1234" } }],
+        pulls: [
+          {
+            number: 9,
+            html_url: "https://example.test/9",
+            draft: true,
+            merged_at: "2026-11-04T12:00:00.000Z",
+            base: { ref: "main" },
+            head: { ref: "arena/comet-lab/model-first", sha: "abc1234" },
+          },
+        ],
+        checks: {},
+      },
+      "2026-11-04T12:00:00.000Z",
+    );
+    const pull = events.find((event) => event.t === "pr.updated");
+    expect(pull?.t).toBe("pr.updated");
+    if (pull?.t !== "pr.updated") return;
+    expect(pull.pr.draft).toBe(false);
+    expect(pull.pr.merged).toBe(true);
+    expect(pull.pr.draft && pull.pr.merged).toBe(false);
+  });
+
   it("ignores branches outside the arena prefix", () => {
     const events = eventsFromGithub(
       {

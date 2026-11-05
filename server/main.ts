@@ -31,6 +31,7 @@ export interface ServerOptions {
 }
 
 interface Payload extends Presented {
+  entries: LogEntry[];
   source: "fixtures" | "github";
   lanes: typeof LANES;
   labels: typeof LANE_LABELS;
@@ -88,6 +89,7 @@ export async function startServer(options: ServerOptions = {}): Promise<ServerHa
 
   const payload = (index?: number): Payload => ({
     ...present(entries, index ?? entries.length),
+    entries,
     source,
     lanes: LANES,
     labels: LANE_LABELS,

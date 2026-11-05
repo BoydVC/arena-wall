@@ -10,6 +10,7 @@
     "start": "node --import tsx cli/arena-wall.ts serve",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "typecheck": "tsc --noEmit",
     "demo-director": "node --import tsx scripts/demo-director.ts",
     "check": "vitest run && playwright test && node --import tsx scripts/demo-director.ts"
   },

@@ -90,13 +90,45 @@ export interface Verifier {
   verdict: Verdict;
 }
 
-export interface PullRequest {
+interface PullBase {
   ideaId: string;
   number: number;
   url: string;
+  base: string;
+}
+
+/**
+ * A pull is one of three shapes. Draft and merged cannot both be true:
+ * that pair is not a member of the union, so it cannot be stored.
+ */
+export type PullRequest =
+  | (PullBase & { draft: true; merged: false })
+  | (PullBase & { draft: false; merged: false })
+  | (PullBase & { draft: false; merged: true });
+
+type ImpossiblePull = Extract<PullRequest, { draft: true; merged: true }>;
+type WinnerSeat = Extract<Seat, { verdict: "winner" }>;
+type _ClosedPull = ImpossiblePull extends never ? true : never;
+type _WinnerNamesCommit = WinnerSeat extends { headSha: string } ? true : never;
+const _closedPull: _ClosedPull = true;
+const _winnerNamesCommit: _WinnerNamesCommit = true;
+void _closedPull;
+void _winnerNamesCommit;
+
+/** Drop a payload that claims to be both a draft and merged. */
+export function asPull(value: {
+  ideaId: string;
+  number: number;
+  url: string;
+  base: string;
   draft: boolean;
   merged: boolean;
-  base: string;
+}): PullRequest | undefined {
+  const base = { ideaId: value.ideaId, number: value.number, url: value.url, base: value.base };
+  if (value.draft && value.merged) return undefined;
+  if (value.merged) return { ...base, draft: false, merged: true };
+  if (value.draft) return { ...base, draft: true, merged: false };
+  return { ...base, draft: false, merged: false };
 }
 
 /**
@@ -156,4 +188,20 @@ export function isLane(value: string): value is Lane {
 
 export function isSeatStyle(value: string): value is SeatStyle {
   return (SEAT_STYLES as readonly string[]).includes(value);
+}
+
+/** The waiting flag has one spelling. The gold badge reads this label. */
+export function flagLabel(reason: FlagReason): string {
+  switch (reason) {
+    case "illegal-transition":
+      return "Illegal move";
+    case "spec-gate":
+      return "Spec gate";
+    case "stale-seat":
+      return "Stale seat";
+    case "awaiting-ok":
+      return "Awaiting OK";
+    default:
+      return assertNever(reason);
+  }
 }

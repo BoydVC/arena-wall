@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,5 +21,16 @@ describe("privacy deny list", () => {
     const source = fs.readFileSync(path.join(root, "docs/lifecycle.md"), "utf8");
     expect(source.toLowerCase()).toContain("statechart");
     expect(scanWorkingTree(root)).toEqual([]);
+  });
+
+  it("does not commit a deny file", () => {
+    const tracked = execFileSync("git", ["ls-files"], { cwd: root, encoding: "utf8" });
+    const denyFiles = tracked.split("\n").filter((line) => line.endsWith("deny.txt") || line.endsWith("deny.md"));
+    expect(denyFiles).toEqual([]);
+    const denyPath = path.join(root, ".arena-wall", "deny.txt");
+    fs.mkdirSync(path.dirname(denyPath), { recursive: true });
+    fs.writeFileSync(denyPath, `${denyTerms().join("\n")}\n`);
+    const ignored = execFileSync("git", ["check-ignore", denyPath], { cwd: root, encoding: "utf8" }).trim();
+    expect(ignored).toBe(denyPath);
   });
 });

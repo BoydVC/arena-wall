@@ -1,44 +1,19 @@
 <!DOCTYPE html>
-<html lang="en" data-mode="tv">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Arena Wall</title>
     <link rel="icon" href="/favicon.svg" />
     <link rel="stylesheet" href="/wall.css" />
-    <script>
-      document.documentElement.dataset.mode =
-        new URLSearchParams(location.search).get("mode") === "phone" ? "phone" : "tv";
-    </script>
   </head>
   <body>
-    <header class="top">
-      <div class="brand">
-        <p class="wordmark">Arena Wall</p>
-        <p class="tag" id="tagline">Read-only pipeline</p>
-      </div>
-      <div class="status">
-        <span id="source" class="pill">fixtures</span>
-        <time id="clock"></time>
-        <span id="live-dot" class="live-dot">Live</span>
-      </div>
-    </header>
-    <main id="board" class="board" aria-label="Pipeline lanes"></main>
-    <footer class="replay-bar">
-      <label class="replay-label" for="replay">Replay</label>
-      <input id="replay" data-testid="replay" type="range" min="0" max="1" value="1" aria-label="Replay" />
-      <span id="replay-readout"></span>
-      <button id="live-btn" type="button">Live</button>
-    </footer>
-    <aside id="drawer" class="drawer" hidden>
-      <div class="drawer-card">
-        <header class="drawer-top">
-          <h2 id="drawer-title">Detail</h2>
-          <button id="drawer-close" type="button">Close</button>
-        </header>
-        <div id="drawer-body" class="drawer-body"></div>
-      </div>
-    </aside>
+    <div id="app"></div>
+    <script>
+      const mode = new URLSearchParams(location.search).get("mode") === "phone" ? "phone" : "tv";
+      document.documentElement.dataset.mode = mode;
+      document.body.dataset.mode = mode;
+    </script>
     <script src="/wall.js"></script>
   </body>
 </html>

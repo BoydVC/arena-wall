@@ -1,3 +1,4 @@
+import { asPull } from "../../core/types.ts";
 import type { GateStatus, PipelineEvent, Seat, SeatStyle } from "../../core/types.ts";
 
 const STYLES: readonly SeatStyle[] = ["types-first", "model-first", "experience-first"];
@@ -104,17 +105,17 @@ export function eventsFromGithub(snapshot: GithubSnapshot, nowIso: string): Pipe
   for (const pull of snapshot.pulls) {
     const parsed = parseArenaBranch(pull.head.ref);
     if (!parsed) continue;
-    events.push({
-      t: "pr.updated",
-      pr: {
-        ideaId: parsed.ideaId,
-        number: pull.number,
-        url: pull.html_url,
-        draft: pull.draft,
-        merged: Boolean(pull.merged_at),
-        base: pull.base.ref,
-      },
+    const merged = Boolean(pull.merged_at);
+    const pr = asPull({
+      ideaId: parsed.ideaId,
+      number: pull.number,
+      url: pull.html_url,
+      base: pull.base.ref,
+      draft: merged ? false : pull.draft,
+      merged,
     });
+    if (!pr) continue;
+    events.push({ t: "pr.updated", pr });
   }
 
   return events;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { emptyState, foldEvents, reduce, type Idea, type PipelineEvent, type PipelineState } from "../core/model.ts";
+import { asPull, emptyState, flagLabel, foldEvents, reduce, type Idea, type PipelineEvent, type PipelineState, type PullRequest } from "../core/model.ts";
 import { humanIsOk } from "../core/statechart.ts";
 import { buildFixtureLog } from "../sources/fixtures/build.ts";
 
@@ -127,6 +127,45 @@ describe("reducer", () => {
     expect(state.flags.at(-1)?.reason).toBe("illegal-transition");
   });
 
+  it("refuses a winner seat that does not name a commit", () => {
+    let state = reduce(emptyState(), { t: "idea.added", idea: idea() });
+    state = reduce(state, {
+      t: "seat.updated",
+      seat: {
+        id: "card:experience-first",
+        ideaId: "card",
+        style: "experience-first",
+        branch: "arena/experience-first",
+        headSha: "",
+        tests: { passed: 4, failed: 0 },
+        diffLines: 10,
+        verdict: "winner",
+        updatedAt: at,
+      },
+    });
+    expect(state.seats).toEqual({});
+    expect(state.flags.at(-1)?.reason).toBe("illegal-transition");
+  });
+
+  it("does not store a pull that is both draft and merged", () => {
+    let state = reachDraft();
+    const before = state.prs.card;
+    const illegal = {
+      ideaId: "card",
+      number: 9,
+      url: "https://example.test/9",
+      base: "main",
+      draft: true,
+      merged: true,
+    };
+    expect(asPull(illegal)).toBeUndefined();
+    state = reduce(state, { t: "pr.updated", pr: illegal as PullRequest });
+    expect(state.ideas.card?.lane).toBe("draft_pr");
+    expect(state.prs.card).toEqual(before);
+    expect(state.flags.at(-1)?.reason).toBe("illegal-transition");
+    expect(flagLabel("awaiting-ok")).toBe("Awaiting OK");
+  });
+
   it("ignores events for an unknown id without inventing a card", () => {
     const state = reduce(emptyState(), seat("missing"));
     expect(state.ideas).toEqual({});
@@ -230,17 +269,7 @@ function randomEvents(seed: number, allowHuman: boolean): PipelineEvent[] {
         },
       });
     } else if (roll < 0.9) {
-      events.push({
-        t: "pr.updated",
-        pr: {
-          ideaId: id,
-          number: 8,
-          url: "https://example.test/8",
-          draft: true,
-          merged: rand() > 0.5,
-          base: "main",
-        },
-      });
+      events.push({ t: "pr.updated", pr: randomPull(id, rand) });
     } else if (rand() > 0.5) {
       events.push({ t: "idea.parked", ideaId: id });
     } else {
@@ -248,6 +277,14 @@ function randomEvents(seed: number, allowHuman: boolean): PipelineEvent[] {
     }
   }
   return events;
+}
+
+function randomPull(id: string, rand: () => number): PullRequest {
+  const base = { ideaId: id, number: 8, url: "https://example.test/8", base: "main" };
+  const roll = rand();
+  if (roll > 0.66) return { ...base, draft: false, merged: true };
+  if (roll > 0.33) return { ...base, draft: true, merged: false };
+  return { ...base, draft: false, merged: false };
 }
 
 function mulberry32(seed: number): () => number {

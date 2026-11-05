@@ -1,4 +1,4 @@
-import { assertNever, emptyState } from "./types.ts";
+import { asPull, assertNever, emptyState } from "./types.ts";
 import type { Idea, PipelineEvent, PipelineState, PullRequest, Seat, SpecReport, Verifier } from "./types.ts";
 import { addFlag, clearFlag, setFlag, specIsOk, tryMove } from "./statechart.ts";
 
@@ -31,8 +31,10 @@ export {
   LANES,
   SEAT_STYLES,
   VERDICTS,
+  asPull,
   assertNever,
   emptyState,
+  flagLabel,
   isLane,
   isSeatStyle,
 } from "./types.ts";
@@ -126,8 +128,10 @@ function onVerifierUpdated(state: PipelineState, verifier: Verifier): PipelineSt
   return next;
 }
 
-function onPrUpdated(state: PipelineState, pr: PullRequest): PipelineState {
-  if (!state.ideas[pr.ideaId]) return addFlag(state, pr.ideaId, "illegal-transition");
+function onPrUpdated(state: PipelineState, raw: PullRequest): PipelineState {
+  if (!state.ideas[raw.ideaId]) return addFlag(state, raw.ideaId, "illegal-transition");
+  const pr = asPull(raw);
+  if (!pr) return addFlag(state, raw.ideaId, "illegal-transition");
 
   let next: PipelineState = {
     ...state,
