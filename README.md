@@ -113,3 +113,9 @@ These are the places the implementation is more specific than the sketch, or had
 - A pull-request payload may say merged. The lane enters `merged` only when the `human-ok` gate is green. The process never sends a forge write.
 - Seat rows can be stored while a card is still in Spec. Storage is not admission. Only `tryMove` changes a lane.
 - Demo Director v1.1 is not a published package in this environment. `npm run demo-director` renders the wall at 16:9, 1:1, and 9:16, writes `demo.gif`, and fails if the gif is blank or the deny scan hits.
+
+## v1.1 polish
+
+- Demo thumbnails keep the DEMO frame readable (`object-fit: contain`, caption under the image) at TV and phone sizes.
+- Privacy scan walks the tree when git is missing (tarball / unpacked CI), still skipping `node_modules`, `dist`, and `.arena-wall`.
+- Lanes scroll when a column has many cards; long titles ellipsize; arrow keys no-op on an empty board.

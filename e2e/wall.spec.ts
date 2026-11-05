@@ -131,3 +131,148 @@ test("keyboard opens the three seat diffs and space plays the day", async ({ pag
   expect(last).toContain("Scrub the day back.");
   expect(errors).toEqual([]);
 });
+
+test("empty lanes show Open and long titles stay inside the card", async ({ page }) => {
+  const errors = await watch(page);
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/?mode=tv");
+  await page.waitForSelector("[data-idea='ridge-owl']");
+
+  const empty = page.locator("[data-lane-column='parked'] .empty");
+  await expect(empty).toHaveText("Open");
+
+  await page.evaluate(() => {
+    const card = document.querySelector<HTMLElement>("[data-idea='nimbus-quill']");
+    const title = card?.querySelector("h3");
+    if (!title) throw new Error("missing title");
+    title.textContent =
+      "Nimbus Quill with an extremely long synthetic title that must ellipsize inside the card instead of stretching the lane";
+  });
+
+  const metrics = await page.evaluate(() => {
+    const card = document.querySelector<HTMLElement>("[data-idea='nimbus-quill']");
+    const title = card?.querySelector("h3");
+    if (!card || !title) throw new Error("missing card");
+    const cardBox = card.getBoundingClientRect();
+    const titleBox = title.getBoundingClientRect();
+    const style = getComputedStyle(title);
+    return {
+      titleWiderThanCard: titleBox.width > cardBox.width + 1,
+      ellipsis: style.textOverflow,
+      nowrap: style.whiteSpace,
+    };
+  });
+  expect(metrics.titleWiderThanCard).toBe(false);
+  expect(metrics.ellipsis).toBe("ellipsis");
+  expect(metrics.nowrap).toBe("nowrap");
+  await noOverflow(page);
+  expect(errors).toEqual([]);
+});
+
+test("fifty cards scroll inside a lane without blowing the page", async ({ page }) => {
+  const errors = await watch(page);
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/?mode=tv");
+  await page.waitForSelector("[data-cards='idea']");
+
+  await page.evaluate(() => {
+    const host = document.querySelector("[data-cards='idea']");
+    if (!host) throw new Error("missing idea cards");
+    for (let index = 0; index < 50; index += 1) {
+      const card = document.createElement("article");
+      card.className = "card";
+      card.dataset.idea = `bulk-${index}`;
+      const title = document.createElement("h3");
+      title.textContent = `Bulk Card ${index} — synthetic load for lane scroll`;
+      card.append(title);
+      host.append(card);
+    }
+  });
+
+  const scroll = await page.evaluate(() => {
+    const host = document.querySelector<HTMLElement>("[data-cards='idea']");
+    if (!host) throw new Error("missing idea cards");
+    return {
+      scrollHeight: host.scrollHeight,
+      clientHeight: host.clientHeight,
+      overflowY: getComputedStyle(host).overflowY,
+      count: host.querySelectorAll(".card").length,
+    };
+  });
+  expect(scroll.count).toBeGreaterThanOrEqual(50);
+  expect(scroll.overflowY === "auto" || scroll.overflowY === "scroll").toBe(true);
+  expect(scroll.scrollHeight).toBeGreaterThan(scroll.clientHeight);
+  await noOverflow(page);
+  expect(errors).toEqual([]);
+});
+
+test("demo thumb keeps DEMO text readable in tv and phone drawers", async ({ page }) => {
+  const errors = await watch(page);
+
+  async function openDrawer(width: number, height: number, mode: "tv" | "phone"): Promise<void> {
+    await page.setViewportSize({ width, height });
+    await page.goto(`/?mode=${mode}`);
+    await page.waitForSelector("[data-idea='ridge-owl']");
+    if (mode === "phone") {
+      await page.locator(".chip", { hasText: "Draft" }).click();
+      await expect(page.locator("[data-lane-column='draft_pr']")).toBeVisible();
+    }
+    await page.locator("[data-idea='ridge-owl']").click();
+    await expect(page.locator("#drawer")).toBeVisible();
+  }
+
+  async function assertThumb(): Promise<void> {
+    const thumb = page.locator("#drawer img.thumb");
+    await expect(thumb).toBeVisible();
+    const info = await thumb.evaluate((img: HTMLImageElement) => {
+      const style = getComputedStyle(img);
+      const box = img.getBoundingClientRect();
+      return {
+        objectFit: style.objectFit,
+        width: box.width,
+        height: box.height,
+        naturalWidth: img.naturalWidth,
+        naturalHeight: img.naturalHeight,
+      };
+    });
+    expect(info.objectFit).toBe("contain");
+    expect(info.height).toBeGreaterThanOrEqual(72);
+    expect(info.width).toBeGreaterThan(120);
+    // Intrinsic ratio must survive layout so DEMO text is not cover-cropped.
+    const ratio = info.width / info.height;
+    const natural = info.naturalWidth / info.naturalHeight;
+    expect(Math.abs(ratio - natural)).toBeLessThan(0.05);
+    await expect(page.locator("#drawer .thumb-wrap figcaption")).toHaveText(/demo seat frame/i);
+  }
+
+  await openDrawer(1920, 1080, "tv");
+  await assertThumb();
+  await page.screenshot({ path: "screenshots/drawer-1920x1080.png" });
+  await page.keyboard.press("Escape");
+
+  await openDrawer(390, 844, "phone");
+  await assertThumb();
+  await page.screenshot({ path: "screenshots/drawer-390x844.png" });
+  expect(errors).toEqual([]);
+});
+
+test("arrow keys move across occupied lanes and digits jump", async ({ page }) => {
+  const errors = await watch(page);
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("/?mode=tv");
+  await page.waitForSelector("[data-idea='ridge-owl']");
+
+  await page.keyboard.press("1");
+  await expect(page.locator("[data-idea='nimbus-quill']")).toHaveAttribute("data-selected", "true");
+  await page.keyboard.press("ArrowRight");
+  await expect(page.locator("[data-selected='true']")).toHaveAttribute("data-lane", "spec");
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#drawer")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#drawer")).toHaveCount(0);
+  // Parked is empty in the fixture; digit 6 still lands on merged (non-parked index).
+  await page.keyboard.press("6");
+  await expect(page.locator("[data-selected='true']")).toHaveAttribute("data-lane", "merged");
+  await noOverflow(page);
+  expect(errors).toEqual([]);
+});
