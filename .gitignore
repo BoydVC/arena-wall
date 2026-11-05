@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.arena-wall/
+.demo-director/
+playwright-report/
+test-results/
+blob-report/
+*.tsbuildinfo
+*.log
+.DS_Store
+shots/frames/
+shots/palette.png

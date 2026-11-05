@@ -1,0 +1,31 @@
+{
+  "name": "arena-wall",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Read-only wall for the idea, spec, arena, and draft PR pipeline.",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "arena-wall": "./cli/run.js"
+  },
+  "scripts": {
+    "start": "node --import tsx cli/arena-wall.ts serve",
+    "test": "vitest run && playwright test",
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test",
+    "typecheck": "tsc --noEmit",
+    "lint:spec": "node --import tsx cli/arena-wall.ts lint fixtures/specs/valid-wall.md",
+    "snapshot": "node --import tsx cli/arena-wall.ts snapshot --out shots/wall-tv.png"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^22.10.1",
+    "esbuild": "^0.24.2",
+    "playwright": "^1.64.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

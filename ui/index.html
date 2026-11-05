@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Arena Wall</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect fill='%23e6b34d' width='16' height='16' rx='2'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <span class="mark" aria-hidden="true"></span>
+        <div>
+          <p class="kicker">Synthetic night desk</p>
+          <h1>Arena Wall</h1>
+        </div>
+      </div>
+      <div class="stats" id="stats">Reading the local log</div>
+    </header>
+    <main id="stage">
+      <p id="boot">Arena Wall is reading the local fixture log and drawing a lane for every stage of the pipeline.</p>
+    </main>
+    <footer>
+      <div class="replay-row">
+        <label for="replay">Replay</label>
+        <span id="replay-label">live</span>
+        <button id="live" type="button">Live</button>
+      </div>
+      <input id="replay" type="range" min="0" max="0" value="0" aria-label="Replay the day" />
+      <p class="hint">t0 shows ideas only. The right end matches the live wall.</p>
+    </footer>
+    <aside id="drawer" hidden></aside>
+    <script type="module" src="/wall.js"></script>
+  </body>
+</html>
