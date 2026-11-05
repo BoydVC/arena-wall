@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.arena-wall/
+test-results/
+playwright-report/
+blob-report/
+*.log
+.DS_Store
