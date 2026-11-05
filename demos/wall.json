@@ -1,0 +1,13 @@
+{
+  "title": "Arena Wall",
+  "url": "http://127.0.0.1:4317/?mode=tv",
+  "aspects": ["16:9"],
+  "fps": 8,
+  "steps": [
+    { "action": "caption", "text": "Six ideas on one wall", "frames": 8 },
+    { "action": "click", "selector": "[data-idea='harbor-mint']", "frames": 8 },
+    { "action": "caption", "text": "Experience seat takes the lead", "frames": 8 },
+    { "action": "click", "selector": "[data-close-drawer]", "frames": 4 },
+    { "action": "hold", "frames": 6 }
+  ]
+}
