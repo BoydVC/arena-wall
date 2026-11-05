@@ -160,7 +160,7 @@ h3 { font-size: 24px; letter-spacing: -0.03em; line-height: 1.1; }
 .lane-head h2 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lane-head span { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 16px; flex: none; }
 
-.cards { display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; overflow: hidden; }
+.cards { display: flex; flex-direction: column; gap: 8px; flex: 1 1 0; min-width: 0; min-height: 0; overflow-x: hidden; overflow-y: auto; }
 
 .card {
   background: var(--card);
@@ -178,6 +178,19 @@ h3 { font-size: 24px; letter-spacing: -0.03em; line-height: 1.1; }
 .card[data-selected="true"] { border-color: var(--magenta); box-shadow: 0 0 0 3px var(--magenta-dim), var(--shadow); }
 .card.spotlight { transform: translateY(-2px); }
 .card.blocked { background: #30191e; border-color: var(--red); }
+
+.card > h3 {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#drawer-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
 
 .note { color: var(--muted); font-size: 14px; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .missing { color: #ffd5da; font-size: 14px; line-height: 1.25; font-weight: 650; }
@@ -245,10 +258,27 @@ h3 { font-size: 24px; letter-spacing: -0.03em; line-height: 1.1; }
 .gate.amber i { background: var(--amber); }
 .gate.red i { background: var(--red); }
 
+.thumb-wrap {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+}
+.thumb-wrap figcaption {
+  color: var(--gold);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
 .thumb {
-  width: 100%;
-  height: 56px;
-  object-fit: cover;
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 140px;
+  object-fit: contain;
+  object-position: center;
   border-radius: 10px;
   border: 1px solid var(--gold-deep);
   background: #101216;
@@ -396,7 +426,7 @@ kbd {
   h3 { font-size: 18px; }
   .hint { display: none; }
   .score-num { font-size: 18px; }
-  .thumb { height: 40px; }
+  .thumb { max-height: 96px; }
   .board { gap: 6px; padding: 4px 8px; }
   .caption { font-size: 18px; bottom: 96px; }
   .foot { grid-template-columns: minmax(0, 1fr) minmax(180px, 0.7fr); }
@@ -423,6 +453,6 @@ body[data-mode="phone"] .drawer {
   grid-template-columns: 1fr;
 }
 body[data-mode="phone"] .diff-grid { grid-template-columns: 1fr; }
-body[data-mode="phone"] .thumb { height: 48px; }
+body[data-mode="phone"] .thumb { max-height: 96px; }
 
 body[data-mode="tv"] .switcher { display: none; }

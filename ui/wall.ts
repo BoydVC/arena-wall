@@ -1,6 +1,7 @@
 import { diffText } from "../core/score.ts";
 import { flagLabel } from "../core/types.ts";
 import type { Idea, Lane, LogEntry, Seat, SeatStyle, SpecReport, Verifier } from "../core/types.ts";
+import { nextOccupiedLane } from "../core/nav.ts";
 import { buildDemoSteps, runDemo } from "./demo.ts";
 
 interface Payload {
@@ -379,12 +380,17 @@ function renderHelp(): HTMLElement {
   return holder;
 }
 
-function thumb(): HTMLImageElement {
+function thumb(): HTMLElement {
+  const wrap = document.createElement("figure");
+  wrap.className = "thumb-wrap";
   const img = document.createElement("img");
   img.className = "thumb";
   img.alt = "Demo clip thumbnail";
   img.src = "/media/demo-frame.gif";
-  return img;
+  const caption = document.createElement("figcaption");
+  caption.textContent = "Demo seat frame";
+  wrap.append(img, caption);
+  return wrap;
 }
 
 async function loadIndex(index: number): Promise<void> {
@@ -481,10 +487,10 @@ function jumpLane(lane: Lane): void {
 
 function moveLane(delta: number): void {
   if (!current) return;
-  const lanes = current.lanes.filter((lane) => ideasIn(lane).length > 0);
-  const currentLane = current.state.ideas[selectedId]?.lane ?? lanes[0] ?? "idea";
-  const index = Math.max(0, lanes.indexOf(currentLane));
-  const next = lanes[(index + delta + lanes.length) % lanes.length] ?? currentLane;
+  const occupied = current.lanes.filter((lane) => ideasIn(lane).length > 0);
+  const currentLane = current.state.ideas[selectedId]?.lane ?? occupied[0] ?? "idea";
+  const next = nextOccupiedLane(occupied, currentLane, delta);
+  if (!next) return;
   jumpLane(next);
 }
 
@@ -564,6 +570,7 @@ document.addEventListener("keydown", (event) => {
     moveLane(-1);
   } else if (event.key === "Enter") {
     event.preventDefault();
+    if (!current?.state.ideas[selectedId]) return;
     drawerOpen = true;
     paint();
   } else if (event.key === " ") {
