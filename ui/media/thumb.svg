@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="Demo clip thumbnail">
+  <rect width="640" height="360" fill="#14171b"/>
+  <rect x="28" y="28" width="584" height="304" rx="18" fill="#1c2127" stroke="#f0c36a" stroke-width="4"/>
+  <polygon points="292,140 292,220 360,180" fill="#ff3d8a"/>
+  <text x="48" y="78" fill="#f6f3ec" font-family="Inter, sans-serif" font-size="28">16:9 clip</text>
+  <text x="48" y="292" fill="#f0c36a" font-family="Inter, sans-serif" font-size="22">seat race</text>
+</svg>

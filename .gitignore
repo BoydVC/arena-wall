@@ -1,0 +1,11 @@
+node_modules/
+dist/
+ui/app.js
+ui/app.js.map
+.arena-wall/
+.demo-director/
+test-results/
+playwright-report/
+tmp/
+*.webm
+.DS_Store
